@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+  <title>main</title>
+  <meta http-equiv="content-type" content="text/html; charset=UTF-8">
+  <meta name="viewport" content="width=device-width, target-densitydpi=160dpi, initial-scale=1.0; maximum-scale=1.0; user-scalable=0;">
+  <link rel="stylesheet" media="all" href="http://strd6.github.io/cdn/parallel/docco.css" />
+</head>
+<body>
+  <div id="container">
+    <div id="background"></div>
+    <ul class="sections">
+        
+        
+        <li id="section-1">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-1">&#182;</a>
+              </div>
+              <h1 id="color">Color</h1>
+
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">
+</code></pre>
+</div>
+        </li>
+        
+        
+        <li id="section-2">
+            <div class="annotation">
+              <div class="pilwrap">
+                <a class="pilcrow" href="#section-2">&#182;</a>
+              </div>
+              
+            </div>
+            <div class="content"><pre><code class="lang-coffeescript">rgbParser = <span class="regexp">/^rgba?\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3}),?\s*(\d?\.?\d*)?\)$/</span>
+hslParser = <span class="regexp">/^hsla?\((\d{1,3}),\s*(\d?\.?\d*),\s*(\d?\.?\d*),?\s*(\d?\.?\d*)?\)$/</span>
+
+{round} = Math
+
+<span class="function"><span class="title">parseHex</span></span> = (str) -&gt;
+  hexString = str.replace(<span class="regexp">/#/</span>, <span class="string">''</span>)
+
+  <span class="keyword">switch</span> hexString.length
+    <span class="keyword">when</span> <span class="number">3</span>, <span class="number">4</span>
+      <span class="keyword">if</span> hexString.length == <span class="number">4</span>
+        alpha = ((parseInt(hexString.substr(<span class="number">3</span>, <span class="number">1</span>), <span class="number">16</span>) * <span class="number">0x11</span>) / <span class="number">255</span>)
+      <span class="keyword">else</span>
+        alpha = <span class="number">1</span>
+
+      rgb = (parseInt(hexString.substr(i, <span class="number">1</span>), <span class="number">16</span>) * <span class="number">0x11</span> <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span><span class="number">.2</span>])      
+      rgb.push(alpha)    
+
+      <span class="keyword">return</span> rgb
+
+    <span class="keyword">when</span> <span class="number">6</span>, <span class="number">8</span>
+      <span class="keyword">if</span> hexString.length == <span class="number">8</span>
+        alpha = (parseInt(hexString.substr(<span class="number">6</span>, <span class="number">2</span>), <span class="number">16</span>) / <span class="number">255</span>)
+      <span class="keyword">else</span>
+        alpha = <span class="number">1</span>
+
+      rgb = (parseInt(hexString.substr(<span class="number">2</span> * i, <span class="number">2</span>), <span class="number">16</span>) <span class="keyword">for</span> i <span class="keyword">in</span> [<span class="number">0.</span><span class="number">.2</span>])          
+      rgb.push(alpha)
+
+      <span class="keyword">return</span> rgb
+
+  <span class="keyword">return</span>
+
+<span class="function"><span class="title">parseRGB</span></span> = (colorString) -&gt;
+  <span class="keyword">return</span> <span class="literal">undefined</span> <span class="keyword">unless</span> channels = rgbParser.exec(colorString)
+
+  parsedColor = (parseFloat channel <span class="keyword">for</span> channel <span class="keyword">in</span> channels[<span class="number">1.</span><span class="number">.4</span>])
+
+  parsedColor[<span class="number">3</span>] = <span class="number">1</span> <span class="keyword">if</span> isNaN(parsedColor[<span class="number">3</span>])
+
+  <span class="keyword">return</span> parsedColor
+
+<span class="function"><span class="title">parseHSL</span></span> = (colorString) -&gt;
+  <span class="keyword">return</span> <span class="literal">undefined</span> <span class="keyword">unless</span> channels = hslParser.exec(colorString)
+
+  parsedColor = (parseFloat channel <span class="keyword">for</span> channel <span class="keyword">in</span> channels[<span class="number">1.</span><span class="number">.4</span>])
+
+  parsedColor[<span class="number">3</span>] = <span class="number">1</span> <span class="keyword">if</span> isNaN(parsedColor[<span class="number">3</span>])
+
+  <span class="keyword">return</span> hslToRgb(parsedColor)
+
+<span class="function"><span class="title">hsvToRgb</span></span> = (hsv) -&gt;
+  r = g = b = <span class="literal">null</span>
+
+  [h, s, v, a] = hsv
+
+  a = <span class="number">1</span> <span class="keyword">unless</span> a?
+
+  i = (h / <span class="number">60</span>).floor()
+  f = h / <span class="number">60</span> - i
+  p = v * (<span class="number">1</span> - s)
+  q = v * (<span class="number">1</span> - f * s)
+  t = v * (<span class="number">1</span> - (<span class="number">1</span> - f) * s)
+
+  <span class="keyword">switch</span> (i % <span class="number">6</span>)
+    <span class="keyword">when</span> <span class="number">0</span>
+      r = v
+      g = t
+      b = p
+    <span class="keyword">when</span> <span class="number">1</span>
+      r = q
+      g = v
+      b = p
+    <span class="keyword">when</span> <span class="number">2</span>
+      r = p
+      g = v
+      b = t
+    <span class="keyword">when</span> <span class="number">3</span>
+      r = p
+      g = q
+      b = v
+    <span class="keyword">when</span> <span class="number">4</span>
+      r = t
+      g = p
+      b = v
+    <span class="keyword">when</span> <span class="number">5</span>
+      r = v
+      g = p
+      b = q
+
+  rgb = [round(r * <span class="number">255</span>), round(g * <span class="number">255</span>), round(b * <span class="number">255</span>)]
+
+  <span class="keyword">return</span> rgb.concat(a)
+
+<span class="function"><span class="title">hslToRgb</span></span> = (hsl) -&gt;    
+  [h, s, l, a] = hsl
+
+  h = h % <span class="number">360</span>
+  a = <span class="number">1</span> <span class="keyword">unless</span> a?
+
+  r = g = b = <span class="literal">null</span>
+
+  <span class="function"><span class="title">hueToRgb</span></span> = (p, q, hue) -&gt;
+    hue = hue.mod(<span class="number">360</span>)      
+
+    <span class="keyword">return</span> p + (q - p) * (hue / <span class="number">60</span>) <span class="keyword">if</span> hue &lt; <span class="number">60</span>
+    <span class="keyword">return</span> q <span class="keyword">if</span> hue &lt; <span class="number">180</span>
+    <span class="keyword">return</span> p + (q - p) * ((<span class="number">240</span> - hue) / <span class="number">60</span>) <span class="keyword">if</span> hue &lt; <span class="number">240</span>
+    <span class="keyword">return</span> p
+
+  <span class="keyword">if</span> s == <span class="number">0</span>
+    r = g = b = l
+  <span class="keyword">else</span>
+    q = (<span class="keyword">if</span> l &lt; <span class="number">0.5</span> <span class="keyword">then</span> l * (<span class="number">1</span> + s) <span class="keyword">else</span> l + s - l * s)
+    p = <span class="number">2</span> * l - q
+    r = hueToRgb(p, q, h + <span class="number">120</span>)
+    g = hueToRgb(p, q, h)
+    b = hueToRgb(p, q, h - <span class="number">120</span>)
+
+  rgbMap = (round(channel * <span class="number">255</span>) <span class="keyword">for</span> channel <span class="keyword">in</span> [r, g, b])
+
+  <span class="keyword">return</span> rgbMap.concat(a)
+
+<span class="function"><span class="title">channelize</span></span> = (color, alpha) -&gt;
+  <span class="keyword">return</span> color.channels() <span class="keyword">if</span> color.channels?
+  <span class="keyword">if</span> Array.isArray color
+    <span class="keyword">if</span> alpha?
+      alpha = parseFloat(alpha)
+    <span class="keyword">else</span> <span class="keyword">if</span> color[<span class="number">3</span>]?
+      alpha = parseFloat(color[<span class="number">3</span>])
+    <span class="keyword">else</span>
+      alpha = <span class="number">1</span>
+
+    result = (parseFloat(channel) <span class="keyword">for</span> channel <span class="keyword">in</span> color[<span class="number">0.</span><span class="number">.2</span>]).concat(alpha)
+  <span class="keyword">else</span>
+    result = Color.lookup?(color) || parseHex(color) || parseRGB(color) || parseHSL(color)
+
+    <span class="keyword">if</span> alpha?
+      result[<span class="number">3</span>] = parseFloat(alpha)
+
+  <span class="keyword">return</span> result
+
+<span class="comment">###*
+Create a new color. The constructor is very flexible. It accepts individual r, g, b, a values,
+arrays of r, g, b values, hex strings, rgb strings, hsl strings, other Color objects, 
+and even the named colors from the xkcd survey: http://blog.xkcd.com/2010/05/03/color-survey-results/. 
+If no arguments are given, defaults to transparent.
+
+    individualRgb = Color(23, 56, 49, 0.4)
+
+    arrayRgb = Color([59, 100, 230])
+
+    hex = Color('#ff0000')
+
+    rgb = Color('rgb(0, 255, 0)')
+
+    hsl = Color('hsl(180, 1, 0.5)')
+
+    anotherColor = Color('blue')
+
+    Color(anotherColor)
+    # =&gt; a new color with the same r, g, b, and alpha values as `anotherColor`
+
+    # You have access to all sorts of weird colors.
+    # We give you all the named colors the browser recognizes
+    # and the ones from this survey 
+    # http://blog.xkcd.com/2010/05/03/color-survey-results/
+    namedBrown = Color('Fuzzy Wuzzy Brown')
+
+    # Uutput color in Hex format 
+    namedBrown.toHex()
+    # =&gt; '#c45655'
+
+    # Default behavior
+    transparent = Color()
+
+    transparent.toString()
+    # =&gt; 'rgba(0, 0, 0, 0)' 
+
+    # let's print out the colors on a canvas to see what they look like
+    canvas.font('14px Helvetica')
+    for color, index in ['individualRgb', 'arrayRgb', 'hex', 'rgb', 'hsl', 'anotherColor', 'namedBrown']
+      canvas.centerText
+        color: eval(color)
+        text: color
+        y: 20 * (index + 1)  
+
+@name Color
+@param {Array|Number|String|Color} args... An Array, r, g, b values, 
+a sequence of numbers defining r, g, b values, a hex or hsl string, another Color object, or a named color
+@constructor
+###</span>
+<span class="function"><span class="title">Color</span></span> = (args...) -&gt;
+  parsedColor = 
+    <span class="keyword">switch</span> args.length
+      <span class="keyword">when</span> <span class="number">0</span>
+        [<span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>, <span class="number">0</span>]
+      <span class="keyword">when</span> <span class="number">1</span>
+        [first] = args
+        channelize(first)
+      <span class="keyword">when</span> <span class="number">2</span>
+        [first, last] = args
+        channelize(first, last)
+      <span class="keyword">else</span>     
+        channelize(args)
+
+  <span class="keyword">throw</span> <span class="string">"<span class="subst">#{args.join(',')}</span> is an unknown color"</span> <span class="keyword">unless</span> parsedColor   
+
+  __proto__: Color::
+  r: round parsedColor[<span class="number">0</span>]
+  g: round parsedColor[<span class="number">1</span>]
+  b: round parsedColor[<span class="number">2</span>]
+  a: parsedColor[<span class="number">3</span>] 
+
+Color:: =
+  <span class="comment">###*
+  Returns the rgba color channels in an array.
+
+      transparent =  Color()
+
+      transparent.channels()
+      # =&gt; [0, 0, 0, 0]
+
+      red = Color("#FF0000")
+
+      red.channels()
+      # =&gt; [255, 0, 0, 1]
+
+      rgb = Color(200, 34, 2)
+
+      rgb.channels()
+      # =&gt; [200, 34, 2, 1]
+
+  @name channels
+  @methodOf Color#
+
+  @returns {Array} Array of r, g, b, and alpha values of the color
+  ###</span>  
+  channels: -&gt;
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>]
+
+  <span class="comment">###*
+  A copy of the calling color that is its complementary color on the color wheel.
+
+      red = Color(255, 0, 0)
+
+      cyan = red.complement()
+
+      # to see what they look like
+      for color, index in [red, cyan]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60         
+
+  @name complement
+  @methodOf Color#
+
+  @returns {Color} new color that is a copy of the calling color with its hue shifted by 180 degrees on the color wheel
+  ###</span> 
+  complement: -&gt;
+    <span class="property">@copy</span>().complement$() 
+
+  <span class="comment">###*
+  Modifies the calling color to make it the complement of its previous value.
+
+      red = Color(255, 0, 0)
+
+      # modifies red in place to make it into cyan
+      red.complement$()
+
+      red.toString()
+      # =&gt; 'rgba(0, 255, 255, 1)'
+
+  @name complement$
+  @methodOf Color#
+
+  @returns {Color} the color hue shifted by 180 degrees on the color wheel. Modifies the existing color.
+  ###</span> 
+  complement$: -&gt;
+    <span class="property">@shiftHue$</span>(<span class="number">180</span>)
+
+  <span class="comment">###*
+  A copy of the calling color.
+
+      color = Color(0, 100, 200)
+
+      copy = color.copy()
+
+      color == copy
+      # =&gt; false
+
+      color.equal(copy)
+      # =&gt; true
+
+  @name copy
+  @methodOf Color#
+
+  @returns {Color} A new color. A copy of the calling color
+  ###</span> 
+  copy: -&gt;
+    Color(<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>)
+
+  <span class="comment">###*
+  Returns a copy of the calling color darkened by `amount` (Lightness of the color ranges from 0 to 1).
+
+      green = Color(0, 255, 0)
+
+      darkGreen = green.darken(0.3)
+
+      # to see what they look like
+      for color, index in [green, darkGreen]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60         
+
+  @name darken
+  @methodOf Color#
+  @param {Number} amount Amount to darken color by (between 0 - 1)
+
+  @returns {Color} A new color. The lightness value is reduced by `amount` from the original.
+  ###</span>
+  darken: (amount) -&gt;
+    <span class="property">@copy</span>().darken$(amount)
+
+  <span class="comment">###*
+  Modifies the color so that it is darkened by `amount` (Lightness of the color ranges from 0 to 1).
+
+      green = Color(0, 255, 0)
+
+      # Modifies green to be darkGreen
+      green.darken$(0.3)
+
+      green.toString()
+      # =&gt; 'rgba(0, 102, 0, 1)'
+
+  @name darken$
+  @methodOf Color#
+  @param {Number} amount Amount to darken color by (between 0 - 1)
+
+  @returns {Color} the color with the lightness value reduced by `amount`
+  ###</span>
+  darken$: (amount) -&gt;
+    hsl = <span class="property">@toHsl</span>()
+    hsl[<span class="number">2</span>] -= amount
+
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl) 
+
+    <span class="keyword">return</span> <span class="keyword">this</span>      
+
+  <span class="comment">###*
+  A copy of the calling color with its saturation reduced by `amount`.
+
+      blue = Color(0, 0, 255)
+
+      desaturatedBlue = blue.desaturate(0.4)
+
+      # to see what they look like
+      for color, index in [blue, desaturatedBlue]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60  
+
+  @name desaturate
+  @methodOf Color#
+  @param {Number} amount Amount to reduce color saturation by (between 0 and 1)
+
+  @returns {Color} A copy of the color with the saturation value reduced by `amount`
+  ###</span>
+  desaturate: (amount) -&gt;
+    <span class="property">@copy</span>().desaturate$(amount) 
+
+  <span class="comment">###*
+  The modified color with its saturation reduced by `amount`.
+
+      blue = Color(0, 0, 255)
+
+      # modifies blue to be desaturatedBlue
+      blue.desaturate$(0.4)
+
+      blue.toString()
+      # =&gt; 'rgba(38, 38, 217, 1)'
+
+  @name desaturate$
+  @methodOf Color#
+  @param {Number} amount Amount to reduce color saturation by (between 0 and 1)
+
+  @returns {Color} the color with the saturation value reduced by `amount`
+  ###</span>
+  desaturate$: (amount) -&gt;
+    hsl = <span class="property">@toHsl</span>()
+    hsl[<span class="number">1</span>] -= amount
+
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl)
+
+    <span class="keyword">return</span> <span class="keyword">this</span>    
+
+  <span class="comment">###*
+  Determine whether two colors are equal. Compares their r, g, b, and alpha values.
+
+      hex = Color('#ffff00')
+      rgb = Color(255, 255, 0)
+
+      hex == rgb
+      # =&gt; false
+
+      hex.equal(rgb)
+      # =&gt; true
+
+  @name equal
+  @methodOf Color#
+  @param {Color} other the color to compare to the calling color
+
+  @returns {Boolean} true if the r, g, b, a values of the colors agree, false otherwise
+  ###</span>
+  equal: (other) -&gt;
+    other.r == <span class="property">@r</span> &amp;&amp;
+    other.g == <span class="property">@g</span> &amp;&amp;
+    other.b == <span class="property">@b</span> &amp;&amp;
+    other.a == <span class="property">@a</span>
+
+  <span class="comment">###*
+  A copy of the calling color converted to grayscale.
+
+      yellow = Color(255, 255, 0)
+
+      gray = yellow.grayscale()
+
+      # to see what they look like
+      for color, index in [yellow, gray]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60 
+
+  @name grayscale
+  @methodOf Color#
+
+  @returns {Color} A copy of the calling color converted to grayscale.
+  ###</span>
+  grayscale: -&gt;
+    <span class="property">@copy</span>().grayscale$()
+
+  <span class="comment">###*
+  The calling color converted to grayscale.
+
+      color = Color(255, 255, 0)
+
+      # modifies color into gray
+      color.grayscale$()
+
+      color.toString()
+      # =&gt; 'rgba(128, 128, 128, 1)'
+
+  @name grayscale$
+  @methodOf Color#
+
+  @returns {Color} The calling color converted to grayscale.
+  ###</span>
+  grayscale$: -&gt;
+    hsl = <span class="property">@toHsl</span>()
+
+    g = round(hsl[<span class="number">2</span>] * <span class="number">255</span>)
+
+    <span class="property">@r</span> = <span class="property">@g</span> = <span class="property">@b</span> = g
+
+    <span class="keyword">return</span> <span class="keyword">this</span> 
+
+  <span class="comment">###*
+  A getter / setter for the hue value of the color. Passing no argument returns the 
+  current hue value. Passing a value will set the hue to that value and return the color.
+
+      magenta = Color(255, 0, 255)
+
+      magenta.hue()
+      # =&gt; 300
+
+      # modifies the color to be yellow
+      magenta.hue(60)
+
+      # to see what it looks like
+      canvas.drawRect
+        color: magenta
+        x: 50 
+        y: 30 
+        width: 80
+        height: 80 
+
+  @name hue
+  @methodOf Color#
+  @param {Number} [newVal] the new hue value
+
+  @returns {Color|Number} returns the color object if you pass a new hue value and returns the hue otherwise 
+  ###</span>
+  hue: (newVal) -&gt;
+    hsl = <span class="property">@toHsl</span>()
+    <span class="keyword">if</span> newVal?
+      hsl[<span class="number">0</span>] = newVal
+
+      [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl)
+
+      <span class="keyword">return</span> <span class="keyword">this</span>
+    <span class="keyword">else</span>
+      <span class="keyword">return</span> hsl[<span class="number">0</span>]
+
+  <span class="comment">###*
+  A getter / setter for the lightness value of the color. Passing no argument returns the 
+  current lightness value. Passing a value will set the lightness to that value and return the color.
+
+      magenta = Color(255, 0, 255)
+
+      magenta.lightness()
+      # =&gt; 0.9
+
+      # modifies magenta in place to be lighter
+      magenta.lightness(0.75)
+
+      # to see what it looks like
+      canvas.drawRect
+        color: magenta
+        x: 50 
+        y: 30 
+        width: 80
+        height: 80 
+
+  @name lightness
+  @methodOf Color#
+  @param {Number} [newVal] the new lightness value
+
+  @returns {Color|Number} returns the color object if you pass a new lightness value and returns the lightness otherwise 
+  ###</span>
+  lightness: (newVal) -&gt;
+    hsl = <span class="property">@toHsl</span>()
+    <span class="keyword">if</span> newVal?
+      hsl[<span class="number">2</span>] = newVal
+
+      [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl)
+
+      <span class="keyword">return</span> <span class="keyword">this</span>
+    <span class="keyword">else</span>
+      <span class="keyword">return</span> hsl[<span class="number">2</span>]
+
+  value: (newVal) -&gt;
+    hsv = <span class="property">@toHsv</span>()
+
+    <span class="keyword">if</span> newVal?
+      hsv[<span class="number">2</span>] = newVal
+
+      [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hsvToRgb(hsv)
+
+      <span class="keyword">return</span> <span class="keyword">this</span>
+    <span class="keyword">else</span>
+      <span class="keyword">return</span> hsv[<span class="number">2</span>]
+
+  <span class="comment">###*
+  A copy of the calling color with its hue shifted by `degrees`. This differs from the hue setter in that it adds to the existing hue value and will wrap around 0 and 360.
+
+      magenta = Color(255, 0, 255)
+
+      magenta.hue()
+      # =&gt; 300
+
+      yellow = magenta.shiftHue(120)
+
+      # since magenta's hue is 300 we have wrapped
+      # around 360 to end up at 60
+      yellow.hue()
+      # =&gt; 60
+
+      # to see what they look like
+      for color, index in [magenta, yellow]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60 
+
+  @name shiftHue
+  @methodOf Color#
+  @param {Number} degrees number of degrees to shift the hue on the color wheel.
+
+  @returns {Color} A copy of the color with its hue shifted by `degrees`
+  ###</span>
+  shiftHue: (degrees) -&gt;
+    <span class="property">@copy</span>().shiftHue$(degrees)
+
+  <span class="comment">###*
+  The calling color with its hue shifted by `degrees`. This differs from the hue setter in that it adds to the existing hue value and will wrap around 0 and 360.
+
+      magenta = Color(255, 0, 255)
+
+      magenta.hue()
+      # =&gt; 300
+
+      magenta.shiftHue$(120)
+
+      # since magenta's hue is 300 we have wrapped
+      # around 360 to end up at 60. Also we have 
+      # modified magenta in place to become yellow
+      magenta.hue()
+      # =&gt; 60
+
+      magenta.toString()
+      # =&gt; 'rgba(255, 255, 0, 1)'
+
+  @name shiftHue$
+  @methodOf Color#
+  @param {Number} degrees number of degrees to shift the hue on the color wheel.
+
+  @returns {Color} The color with its hue shifted by `degrees`
+  ###</span>      
+  shiftHue$: (degrees) -&gt;
+    hsl = <span class="property">@toHsl</span>()
+
+    hsl[<span class="number">0</span>] = (hsl[<span class="number">0</span>] + round(degrees.round())).mod <span class="number">360</span>
+
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl)
+
+    <span class="keyword">return</span> <span class="keyword">this</span>
+
+  <span class="comment">###*
+  Returns a copy of the calling color lightened by `amount` (Lightness of the color ranges from 0 to 1).
+
+      green = Color(0, 255, 0)
+
+      lightGreen = green.lighten(0.3)
+
+      # to see what they look like
+      for color, index in [green, lightGreen]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60 
+
+  @name lighten
+  @methodOf Color#
+  @param {Number} amount Amount to lighten color by (between 0 to 1)
+
+  @returns {Color} A new color. The lightness value is increased by `amount` from the original.
+  ###</span>
+  lighten: (amount) -&gt;
+    <span class="property">@copy</span>().lighten$(amount)
+
+  <span class="comment">###*
+  The calling color lightened by `amount` (Lightness of the color ranges from 0 to 1).
+
+      green = Color(0, 255, 0)
+
+      green.lighten$(0.2)
+
+      # we have modified green in place
+      # to become lightGreen
+      green.toString()
+      # =&gt; 'rgba(102, 255, 102, 1)'
+
+  @name lighten$
+  @methodOf Color#
+  @param {Number} amount Amount to lighten color by (between 0 - 1)
+
+  @returns {Color} The calling color with its lightness value increased by `amount`.
+  ###</span>
+  lighten$: (amount) -&gt;
+    hsl = <span class="property">@toHsl</span>()
+    hsl[<span class="number">2</span>] += amount
+
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl)
+
+    <span class="keyword">return</span> <span class="keyword">this</span> 
+
+  <span class="comment">###*
+  A copy of the calling color mixed with `other` using `amount` as the 
+  mixing ratio. If amount is not passed, then the colors are mixed evenly.
+
+      red = Color(255, 0, 0)
+      yellow = Color(255, 255, 0)
+
+      # With no amount argument the colors are mixed evenly
+      orange = red.mixWith(yellow)
+
+      # With an amount of 0.3 we are mixing the color 30% red and 70% yellow
+      somethingCloseToOrange = red.mixWith(yellow, 0.3)
+
+      # to see what they look like
+      for color, index in [red, yellow, orange, somethingCloseToOrange]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * (index % 2))
+          y: 20 + (60 * (if index &gt; 1 then 1 else 0))
+          width: 60
+          height: 60 
+
+  @name mixWith
+  @methodOf Color#
+  @param {Color} other the other color to mix
+  @param {Number} [amount] the mixing ratio of the calling color to `other`
+
+  @returns {Color} A new color that is a mix of the calling color and `other`
+  ###</span>
+  mixWith: (other, amount) -&gt;
+    <span class="property">@copy</span>().mixWith$(other, amount) 
+
+  <span class="comment">###*
+  A copy of the calling color mixed with `other` using `amount` as the 
+  mixing ratio. If amount is not passed, then the colors are mixed evenly.
+
+      red = Color(255, 0, 0)
+      yellow = Color(255, 255, 0)
+      anotherRed = Color(255, 0, 0)
+
+      # With no amount argument the colors are mixed evenly
+      red.mixWith$(yellow)
+
+      # We have modified red in place to be orange 
+      red.toString()
+      # =&gt; 'rgba(255, 128, 0, 1)'    
+
+      # With an amount of 0.3 we are mixing the color 30% red and 70% yellow
+      anotherRed.mixWith$(yellow, 0.3)
+
+      # We have modified `anotherRed` in place to be somethingCloseToOrange 
+      anotherRed.toString()
+      # =&gt; rgba(255, 179, 0, 1)
+
+  @name mixWith$
+  @methodOf Color#
+  @param {Color} other the other color to mix
+  @param {Number} [amount] the mixing ratio of the calling color to `other`
+
+  @returns {Color} The modified calling color after mixing it with `other`
+  ###</span>
+  mixWith$: (other, amount) -&gt;
+    amount ||= <span class="number">0.5</span>
+
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>].zip([other.r, other.g, other.b, other.a]).map (array) -&gt;
+      (array[<span class="number">0</span>] * amount) + (array[<span class="number">1</span>] * (<span class="number">1</span> - amount))
+
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>] = [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>].map (color) -&gt;
+      color.round()
+
+    <span class="keyword">return</span> <span class="keyword">this</span> 
+
+  <span class="comment">###*
+  A copy of the calling color with its saturation increased by `amount`.
+
+      color = Color(50, 50, 200)
+
+      color.saturation()
+      # =&gt; 0.6
+
+      saturatedColor = color.saturate(0.2)
+
+      saturatedColor.saturation()
+      # =&gt; 0.8
+
+      # to see what they look like
+      for color, index in [color, saturatedColor]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60 
+
+  @name saturate
+  @methodOf Color#
+  @param {Number} amount the amount to increase saturation by
+
+  @returns {Color} A copy of the calling color with its saturation increased by `amount`
+  ###</span>
+  saturate: (amount) -&gt;
+    <span class="property">@copy</span>().saturate$(amount) 
+
+  <span class="comment">###*
+  The calling color with its saturation increased by `amount`.
+
+      color = Color(50, 50, 200)
+
+      color.saturation()
+      # =&gt; 0.6
+
+      color.saturate$(0.2)
+
+      # We have modified color in place and increased its saturation to 0.8
+      color.saturation()
+      # =&gt; 0.8
+
+      color.toString()
+      # =&gt; rgba(25, 25, 225, 1)
+
+  @name saturate$
+  @methodOf Color#
+  @param {Number} amount the amount to increase saturation by
+
+  @returns {Color} The calling color with its saturation increased by `amount`
+  ###</span>
+  saturate$: (amount) -&gt;
+    hsl = <span class="property">@toHsl</span>()
+    hsl[<span class="number">1</span>] += amount
+
+    [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl) 
+
+    <span class="keyword">return</span> <span class="keyword">this</span>    
+
+  <span class="comment">###*
+  A getter / setter for the saturation value of the color. Passing no argument returns the 
+  current saturation value. Passing a value will set the saturation to that value and return the color.
+
+      yellow = Color('hsl(60, 0.5, 0.5)')
+
+      yellow.saturation()
+      # =&gt; 0.5
+
+      yellow.saturation(0.8)
+
+      # to see what it looks like
+      canvas.drawRect
+        color: yellow
+        x: 50 
+        y: 30 
+        width: 80
+        height: 80     
+
+  @name saturation
+  @methodOf Color#
+  @param {Number} [newVal] the new saturation value
+
+  @returns {Color|Number} returns the color object if you pass a new saturation value and returns the saturation otherwise 
+  ###</span>
+  saturation: (newVal, mode) -&gt;
+    <span class="keyword">if</span> mode == <span class="string">'hsv'</span>
+      hsv = <span class="property">@toHsv</span>()
+      <span class="keyword">if</span> newVal?
+        hsv[<span class="number">1</span>] = newVal
+
+        [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hsvToRgb(hsv)
+
+        <span class="keyword">return</span> <span class="keyword">this</span>
+      <span class="keyword">else</span>
+        <span class="keyword">return</span> hsv[<span class="number">1</span>]
+
+    <span class="keyword">else</span>
+      hsl = <span class="property">@toHsl</span>()
+      <span class="keyword">if</span> newVal?
+        hsl[<span class="number">1</span>] = newVal
+
+        [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>, <span class="property">@a</span>] = hslToRgb(hsl)
+
+        <span class="keyword">return</span> <span class="keyword">this</span>
+      <span class="keyword">else</span>
+        <span class="keyword">return</span> hsl[<span class="number">1</span>]
+
+  <span class="comment">###*
+  returns the Hex representation of the color. Exclude the leading `#` by passing false. 
+
+      color = Color('hsl(60, 1, 0.5)')
+
+      # passing nothing will leave the `#` intact
+      color.toHex()
+      # =&gt; '#ffff00'
+
+      # passing false will remove the `#`
+      color.toHex(false)
+      # =&gt; 'ffff00'
+
+  @name toHex
+  @methodOf Color#
+  @param {Boolean} [leadingHash] if passed as false excludes the leading `#` from the string
+
+  @returns {String} returns the Hex representation of the color 
+  ###</span>
+  toHex: (leadingHash) -&gt;
+    <span class="function"><span class="title">padString</span></span> = (hexString) -&gt;        
+      <span class="keyword">if</span> hexString.length == <span class="number">1</span> <span class="keyword">then</span> pad = <span class="string">"0"</span> <span class="keyword">else</span> pad = <span class="string">""</span> 
+
+      <span class="keyword">return</span> pad + hexString
+
+    <span class="function"><span class="title">hexFromNumber</span></span> = (number) -&gt;
+      <span class="keyword">return</span> padString(number.toString(<span class="number">16</span>))
+
+    <span class="keyword">if</span> leadingHash == <span class="literal">false</span>
+      <span class="string">"<span class="subst">#{hexFromNumber(@r)}</span><span class="subst">#{hexFromNumber(@g)}</span><span class="subst">#{hexFromNumber(@b)}</span>"</span>
+    <span class="keyword">else</span>
+      <span class="string">"#<span class="subst">#{hexFromNumber(@r)}</span><span class="subst">#{hexFromNumber(@g)}</span><span class="subst">#{hexFromNumber(@b)}</span>"</span>  
+
+  <span class="comment">###*
+  returns an array of the hue, saturation, lightness, and alpha values of the color. 
+
+      magenta = Color(255, 0, 255)
+
+      magenta.toHsl()
+      # =&gt; [300, 1, 0.5, 1]
+
+  @name toHsl
+  @methodOf Color#
+
+  @returns {Array} An array of the hue, saturation, lightness, and alpha values of the color. 
+  ###</span>
+  toHsl: -&gt;
+    [r, g, b] = (channel / <span class="number">255</span> <span class="keyword">for</span> channel <span class="keyword">in</span> [<span class="property">@r</span>, <span class="property">@g</span>, <span class="property">@b</span>])
+
+    {min, max} = [r, g, b].extremes()
+
+    hue = saturation = lightness = (max + min) / <span class="number">2</span>
+    chroma = max - min
+
+    <span class="keyword">if</span> chroma.abs() &lt; <span class="number">0.00001</span>
+      hue = saturation = <span class="number">0</span>
+    <span class="keyword">else</span>
+      saturation =
+        <span class="keyword">if</span> lightness &gt; <span class="number">0.5</span>
+          chroma / (<span class="number">1</span> - lightness)
+        <span class="keyword">else</span> 
+          chroma / lightness
+
+      saturation /= <span class="number">2</span>
+
+      <span class="keyword">switch</span> max
+        <span class="keyword">when</span> r <span class="keyword">then</span> hue = ((g - b) / chroma) + <span class="number">0</span>
+        <span class="keyword">when</span> g <span class="keyword">then</span> hue = ((b - r) / chroma) + <span class="number">2</span>
+        <span class="keyword">when</span> b <span class="keyword">then</span> hue = ((r - g) / chroma) + <span class="number">4</span>
+
+      hue = (hue * <span class="number">60</span>).mod(<span class="number">360</span>)
+
+    <span class="keyword">return</span> [hue, saturation, lightness, <span class="property">@a</span>] 
+
+  toHsv: -&gt;
+    r = <span class="property">@r</span> / <span class="number">255</span>
+    g = <span class="property">@g</span> / <span class="number">255</span>
+    b = <span class="property">@b</span> / <span class="number">255</span>
+
+    {min, max} = [r, g, b].extremes()
+
+    h = s = v = max
+
+    d = max - min
+    s = (<span class="keyword">if</span> max == <span class="number">0</span> <span class="keyword">then</span> <span class="number">0</span> <span class="keyword">else</span> d / max)
+
+    <span class="keyword">if</span> max == min
+      h = <span class="number">0</span>
+    <span class="keyword">else</span>
+      <span class="keyword">switch</span> max
+        <span class="keyword">when</span> r
+          h = (g - b) / d + (<span class="keyword">if</span> g &lt; b <span class="keyword">then</span> <span class="number">6</span> <span class="keyword">else</span> <span class="number">0</span>)
+        <span class="keyword">when</span> g
+          h = (b - r) / d + <span class="number">2</span>
+        <span class="keyword">when</span> b
+          h = (r - g) / d + <span class="number">4</span>
+
+      h *= <span class="number">60</span>
+
+    <span class="keyword">return</span> [h, s, v]
+
+  <span class="comment">###*
+  returns string rgba representation of the color. 
+
+      red = Color('#ff0000')
+
+      red.toString()
+      # =&gt; 'rgba(255, 0, 0, 1)'
+
+  @name toString
+  @methodOf Color#
+
+  @returns {String} The rgba string representation of the color 
+  ###</span>
+  toString: -&gt;
+    <span class="string">"rgba(<span class="subst">#{@r}</span>, <span class="subst">#{@g}</span>, <span class="subst">#{@b}</span>, <span class="subst">#{@a}</span>)"</span>
+
+  <span class="comment">###*
+  A copy of the calling color with its alpha reduced by `amount`.
+
+      color = Color(0, 0, 0, 1)
+
+      color.a
+      # =&gt; 1
+
+      transparentColor = color.transparentize(0.5)
+
+      transparentColor.a
+      # =&gt; 0.5
+
+      # to see what they look like
+      for color, index in [color, transparentColor]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60     
+
+  @name transparentize
+  @methodOf Color#
+
+  @returns {Color} A copy of the calling color with its alpha reduced by `amount`   
+  ###</span>
+  transparentize: (amount) -&gt;
+    <span class="property">@copy</span>().transparentize$(amount) 
+
+  <span class="comment">###*
+  The calling color with its alpha reduced by `amount`.
+
+      color = Color(0, 0, 0, 1)
+
+      color.a
+      # =&gt; 1
+
+      # We modify color in place
+      color.transparentize$(0.5)
+
+      color.a
+      # =&gt; 0.5
+
+  @name transparentize$
+  @methodOf Color#
+
+  @returns {Color} The calling color with its alpha reduced by `amount`   
+  ###</span>
+  transparentize$: (amount) -&gt;
+    <span class="property">@a</span> = (<span class="property">@a</span> - amount).clamp(<span class="number">0</span>, <span class="number">1</span>) 
+
+    <span class="keyword">return</span> <span class="keyword">this</span>  
+
+  <span class="comment">###*
+  A copy of the calling color with its alpha increased by `amount`.
+
+      color = Color(0, 0, 0, 0.25)
+
+      color.a
+      # =&gt; 0.25
+
+      opaqueColor = color.opacify(0.5)
+
+      opaqueColor.a
+      # =&gt; 0.75
+
+      # to see what they look like
+      for color, index in [color, opaqueColor]
+        canvas.drawRect
+          color: color
+          x: 20 + (60 * index)
+          y: 20 + (60 * index)
+          width: 60
+          height: 60     
+
+  @name opacify
+  @methodOf Color#
+
+  @returns {Color} A copy of the calling color with its alpha increased by `amount`   
+  ###</span>
+  opacify: (amount) -&gt;
+    <span class="property">@copy</span>().opacify$(amount)   
+
+  <span class="comment">###*
+  The calling color with its alpha increased by `amount`.
+
+      color = Color(0, 0, 0, 0)
+
+      color.a
+      # =&gt; 0
+
+      # We modify color in place
+      color.opacify$(0.25)
+
+      color.a
+      # =&gt; 0.25
+
+  @name opacify$
+  @methodOf Color#
+
+  @returns {Color} The calling color with its alpha increased by `amount`   
+  ###</span>
+  opacify$: (amount) -&gt;
+    <span class="property">@a</span> = (<span class="property">@a</span> + amount).clamp(<span class="number">0</span>, <span class="number">1</span>) 
+
+    <span class="keyword">return</span> <span class="keyword">this</span>    
+
+<span class="comment">###*
+returns a random color.
+
+    Color.random().toString()
+    # =&gt; 'rgba(213, 144, 202, 1)'
+
+    Color.random().toString()
+    # =&gt; 'rgba(1, 211, 24, 1)'
+
+@name random
+@methodOf Color
+
+@returns {Color} A random color. 
+###</span>
+Color.<span class="function"><span class="title">random</span></span> = -&gt;
+  Color(rand(<span class="number">256</span>), rand(<span class="number">256</span>), rand(<span class="number">256</span>)) 
+
+<span class="comment">###*
+Mix two colors. Behaves just like `#mixWith` except that you are passing two colors.
+
+    red = Color(255, 0, 0)
+    yellow = Color(255, 255, 0)
+
+    # With no amount argument the colors are mixed evenly
+    orange = Color.mix(red, yellow)
+
+    orange.toString()
+    # =&gt; 'rgba(255, 128, 0, 1)'    
+
+    # With an amount of 0.3 we are mixing the color 30% red and 70% yellow
+    somethingCloseToOrange = Color.mix(red, yellow, 0.3)
+
+    somethingCloseToOrange.toString()
+    # =&gt; rgba(255, 179, 0, 1)
+
+@name mix
+@methodOf Color
+@see Color#mixWith
+@param {Color} color1 the first color to mix
+@param {Color} color2 the second color to mix
+@param {Number} amount the ratio to mix the colors 
+
+@returns {Color} A new color that is the two colors mixed at the ratio defined by `amount` 
+###</span>
+Color.<span class="function"><span class="title">mix</span></span> = (color1, color2, amount) -&gt;
+  amount ||= <span class="number">0.5</span>
+
+  newColors = [color1.r, color1.g, color1.b, color1.a].zip([color2.r, color2.g, color2.b, color2.a]).map (array) -&gt;
+    (array[<span class="number">0</span>] * amount) + (array[<span class="number">1</span>] * (<span class="number">1</span> - amount))
+
+  <span class="keyword">return</span> Color(newColors)     
+
+module.exports = Color</code></pre>
+</div>
+        </li>
+        
+    </ul>
+  </div>
+  <script src="//code.jquery.com/jquery-1.10.1.min.js"></script>
+<script src="//cdnjs.cloudflare.com/ajax/libs/coffee-script/1.6.3/coffee-script.min.js"></script>
+<script src="http://strd6.github.io/require/v0.2.2.js"></script><script>
+  $.ajax({
+    url: "http://strd6.github.io/interactive/v0.8.1.jsonp",
+    dataType: "jsonp",
+    jsonpCallback: "STRd6/interactive:v0.8.1",
+    cache: true
+  }).then(function(PACKAGE) {
+    Require.generateFor(PACKAGE)("./" + PACKAGE.entryPoint)
+  })
+</script><script src="package.js"></script>
+</body>
+</html>
